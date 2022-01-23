@@ -3,6 +3,8 @@ import { v4 as uuidV4 } from "uuid";
 import useLocalStorage from "../hooks/useLocalStorage";
 const BudgetsContext = React.createContext();
 
+export const UNCATEGORIZED_BUDGET_ID = "Uncategorized";
+
 export function useBudgets() {
   return useContext(BudgetsContext);
 }
@@ -23,18 +25,26 @@ export const BudgetsProvider = ({ children }) => {
   const getBudgetExpenses = (budgetId) => {
     return expenses.filter((expense) => expense.budgetId === budgetId);
   };
-  const addBudget = (name, max) => {
+  function addBudget({ name, max }) {
+    console.log("val", name, max);
     setBudgets((prevBudgets) => {
       if (prevBudgets.find((budget) => budget.name === name))
-        return [...prevBudgets, { id: uuidV4(), name, max }];
+        return prevBudgets;
+      return [...prevBudgets, { id: uuidV4(), name, max }];
     });
-  };
-  const addExpenses = (description, amount, budgetId) => {
+  }
+  const addExpenses = ({ description, amount, budgetId }) => {
     setExpenses((prevExpenses) => {
       return [...prevExpenses, { id: uuidV4(), description, amount, budgetId }];
     });
   };
   const deleteBudget = ({ id }) => {
+    setExpenses((prevExpenses) => {
+      return prevExpenses.map((expense) => {
+        if (expense.budgetId !== id) return expense;
+        return { ...expense, budgetId: UNCATEGORIZED_BUDGET_ID };
+      });
+    });
     setBudgets((prevBudgets) => {
       return prevBudgets.filter((budget) => budget.id !== id);
     });
